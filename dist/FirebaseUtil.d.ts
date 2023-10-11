@@ -1,2 +1,2 @@
-declare const FirebaseUtil: () => void;
-export default FirebaseUtil;
+declare const firebaseUtil: () => void;
+export default firebaseUtil;
