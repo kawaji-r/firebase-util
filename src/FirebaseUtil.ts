@@ -5,6 +5,7 @@ import {
   deleteDoc,
   doc,
   DocumentData,
+  DocumentReference,
   Firestore,
   getDoc,
   getDocs,
@@ -21,8 +22,8 @@ import { firebaseConfigType, FirestoreStructure } from './types'
  * Firebaseの操作を抽象化し、簡単に利用できるようにするためのクラスです。
  */
 class FirebaseUtil {
-  private readonly app: FirebaseApp  // Firebaseアプリのインスタンス
-  private readonly firestore: Firestore  // Firestoreのインスタンス
+  private readonly app: FirebaseApp // Firebaseアプリのインスタンス
+  private readonly firestore: Firestore // Firestoreのインスタンス
 
   /**
    * FirebaseUtilのコンストラクタ
@@ -30,8 +31,8 @@ class FirebaseUtil {
    * Firebaseの設定を元に、FirebaseアプリとFirestoreを初期化します。
    */
   constructor(config: firebaseConfigType) {
-    this.app = this.init(config)  // Firebaseアプリの初期化
-    this.firestore = getFirestore(this.app)  // Firestoreの初期化
+    this.app = this.init(config) // Firebaseアプリの初期化
+    this.firestore = getFirestore(this.app) // Firestoreの初期化
   }
 
   /**
@@ -49,36 +50,36 @@ class FirebaseUtil {
     ref: any = this.firestore
   ) {
     const obj = {
-      col: firestoreStructure.collection,  // コレクション名
-      doc: firestoreStructure.document,  // ドキュメントID
-      fld: firestoreStructure.field,  // 更新するフィールドのデータ
-      nxt: firestoreStructure.next  // 次に更新するFirestoreの構造
+      col: firestoreStructure.collection, // コレクション名
+      doc: firestoreStructure.document, // ドキュメントID
+      fld: firestoreStructure.field, // 更新するフィールドのデータ
+      nxt: firestoreStructure.next // 次に更新するFirestoreの構造
     }
 
     if (!obj.col) throw new Error(`collectionキーは必須です / ${JSON.stringify(obj)}`)
     if (!obj.fld && !obj.nxt) throw new Error(`fieldキーとnextキーのどちらかは必須です / ${JSON.stringify(obj)}`)
 
     if (obj.doc && obj.fld && obj.nxt) {
-      ref = doc(ref, obj.col, obj.doc)  // ドキュメントの参照を取得
-      await setDoc(ref, obj.fld, { merge: mergeFlg })  // フィールドを更新
-      await this.updateField(obj.nxt, mergeFlg, ref)  // 次の更新を実行
+      ref = doc(ref, obj.col, obj.doc) // ドキュメントの参照を取得
+      await setDoc(ref, obj.fld, { merge: mergeFlg }) // フィールドを更新
+      await this.updateField(obj.nxt, mergeFlg, ref) // 次の更新を実行
     } else if (obj.doc && obj.fld && !obj.nxt) {
-      ref = doc(ref, obj.col, obj.doc)  // ドキュメントの参照を取得
-      await setDoc(ref, obj.fld, { merge: mergeFlg })  // フィールドを更新
+      ref = doc(ref, obj.col, obj.doc) // ドキュメントの参照を取得
+      await setDoc(ref, obj.fld, { merge: mergeFlg }) // フィールドを更新
     } else if (obj.doc && !obj.fld && obj.nxt) {
-      ref = doc(ref, obj.col, obj.doc)  // ドキュメントの参照を取得
-      await this.updateField(obj.nxt, mergeFlg, ref)  // 次の更新を実行
+      ref = doc(ref, obj.col, obj.doc) // ドキュメントの参照を取得
+      await this.updateField(obj.nxt, mergeFlg, ref) // 次の更新を実行
     } else if (!obj.doc && obj.fld && obj.nxt) {
-      ref = collection(ref, obj.col)  // コレクションの参照を取得
-      ref = await addDoc(ref, obj.fld)  // 新規ドキュメントを作成
-      await this.updateField(obj.nxt, mergeFlg, ref)  // 次の更新を実行
+      ref = collection(ref, obj.col) // コレクションの参照を取得
+      ref = await addDoc(ref, obj.fld) // 新規ドキュメントを作成
+      await this.updateField(obj.nxt, mergeFlg, ref) // 次の更新を実行
     } else if (!obj.doc && obj.fld && !obj.nxt) {
-      ref = collection(ref, obj.col)  // コレクションの参照を取得
-      await addDoc(ref, obj.fld)  // 新規ドキュメントを作成
+      ref = collection(ref, obj.col) // コレクションの参照を取得
+      await addDoc(ref, obj.fld) // 新規ドキュメントを作成
     } else if (!obj.doc && !obj.fld && obj.nxt) {
-      ref = collection(ref, obj.col)  // コレクションの参照を取得
-      ref = await addDoc(ref, {})  // 空の新規ドキュメントを作成
-      await this.updateField(obj.nxt, mergeFlg, ref)  // 次の更新を実行
+      ref = collection(ref, obj.col) // コレクションの参照を取得
+      ref = await addDoc(ref, {}) // 空の新規ドキュメントを作成
+      await this.updateField(obj.nxt, mergeFlg, ref) // 次の更新を実行
     } else {
       throw new Error(`インプットデータが不正です / ${JSON.stringify(obj)}`)
     }
@@ -103,10 +104,10 @@ class FirebaseUtil {
     | null
   > {
     const obj = {
-      col: firestoreStructure.collection,  // コレクション名
-      doc: firestoreStructure.document,  // ドキュメントID
-      and: firestoreStructure.whereAnd,  // 検索条件
-      nxt: firestoreStructure.next  // 次に読み込むFirestoreの構造
+      col: firestoreStructure.collection, // コレクション名
+      doc: firestoreStructure.document, // ドキュメントID
+      and: firestoreStructure.whereAnd, // 検索条件
+      nxt: firestoreStructure.next // 次に読み込むFirestoreの構造
     }
 
     if (!obj.col) throw new Error(`collectionキーは必須です / ${JSON.stringify(obj)}`)
@@ -116,12 +117,12 @@ class FirebaseUtil {
     let result: { id: string; data: unknown }[] | null = []
 
     if (obj.doc) {
-      ref = doc(ref, obj.col, obj.doc)  // ドキュメントの参照を取得
-      const docSnap = await getDoc(ref)  // ドキュメントを読み込む
+      ref = doc(ref, obj.col, obj.doc) // ドキュメントの参照を取得
+      const docSnap = await getDoc(ref) // ドキュメントを読み込む
       if (docSnap.exists()) {
         result.push({
           id: obj.doc,
-          data: docSnap.data()  // ドキュメントのデータを取得
+          data: docSnap.data() // ドキュメントのデータを取得
         })
       } else {
         result = null
@@ -129,25 +130,25 @@ class FirebaseUtil {
     }
 
     if (obj.and) {
-      let q: Query<unknown, DocumentData> = collection(ref, obj.col)  // コレクションの参照を取得
+      let q: Query<unknown, DocumentData> = collection(ref, obj.col) // コレクションの参照を取得
       // 複数条件のAND検索を実現できている
       obj.and.forEach((el: any) => {
-        q = query(q, where(el.key, el.operator, el.value))  // 検索条件を追加
+        q = query(q, where(el.key, el.operator, el.value)) // 検索条件を追加
       })
-      const querySnapshot = await getDocs(q)  // 検索を実行
+      const querySnapshot = await getDocs(q) // 検索を実行
       querySnapshot.forEach((document) => {
         // (whr && nxt)の場合は、whrの結果のドキュメントIDを使ってnxt処理に使用する。
         // それもあり、whrの結果は1つのみの想定。そうでない場合は任意の一つのドキュメントが採用される。
-        ref = doc(ref, obj.col, document.id)  // ドキュメントの参照を取得
+        ref = doc(ref, obj.col, document.id) // ドキュメントの参照を取得
         result.push({
           id: document.id,
-          data: document.data()  // ドキュメントのデータを取得
+          data: document.data() // ドキュメントのデータを取得
         })
       })
     }
 
     // nxt がある場合はrefのみ、ない場合は result のみが使われる
-    if (obj.nxt) return await this.readDocument(obj.nxt, ref)  // 次の読み込みを実行
+    if (obj.nxt) return await this.readDocument(obj.nxt, ref) // 次の読み込みを実行
     return result
   }
 
@@ -161,12 +162,12 @@ class FirebaseUtil {
     if (!firestoreStructure.collection) throw new Error('collectionキーは必須です')
     if (!firestoreStructure.document) throw new Error('documentキーは必須です')
 
-    ref = doc(ref, firestoreStructure.collection, firestoreStructure.document)  // ドキュメントの参照を取得
+    ref = doc(ref, firestoreStructure.collection, firestoreStructure.document) // ドキュメントの参照を取得
     if (firestoreStructure.next) {
       // サブコレクションは削除されないので注意
-      await this.deleteDocument(firestoreStructure.next, ref)  // 次の削除を実行
+      await this.deleteDocument(firestoreStructure.next, ref) // 次の削除を実行
     }
-    await deleteDoc(ref)  // ドキュメントを削除
+    await deleteDoc(ref) // ドキュメントを削除
   }
 
   /**
@@ -178,6 +179,31 @@ class FirebaseUtil {
     throw new Error('Webクライアントからのコレクションの削除は推奨されていません')
   }
 
+  public static generateUUID(): string {
+    const crypto = require('crypto')
+    return crypto.randomUUID()
+  }
+
+  /**
+   * 指定したパスのドキュメントを取得します。
+   * @param {string} path - ドキュメントへのパス
+   * @returns {DocumentReference} ドキュメントの参照
+   * パスは先頭と末尾のスラッシュを除去します。スラッシュの数が偶数の場合は、UUIDを生成してパスに追加します。
+   * 最終的にFirestoreからドキュメントの参照を取得します。
+   */
+  private getDocument(path: string): DocumentReference {
+    // 先頭と末尾のスラッシュを除去
+    path = path.replace(/^\/|\/$/g, '')
+    // スラッシュの数をカウント
+    const slashCount = (path.match(/\//g) || []).length
+    // スラッシュの数が偶数の場合は、UUIDを生成してパスに追加
+    if (slashCount % 2 === 0) {
+      path += '/' + FirebaseUtil.generateUUID()
+    }
+    // Firestoreからドキュメントの参照を取得
+    return doc(this.firestore, path)
+  }
+
   /**
    * Firebaseアプリを初期化します
    * @param {firebaseConfigType} config - Firebaseの設定
@@ -186,12 +212,12 @@ class FirebaseUtil {
    */
   private init(config: firebaseConfigType): FirebaseApp {
     let app: FirebaseApp
-    const apps: FirebaseApp[] = getApps()  // すでに初期化されているFirebaseアプリのリストを取得
+    const apps: FirebaseApp[] = getApps() // すでに初期化されているFirebaseアプリのリストを取得
     if (!apps.length) {
       // Firebaseアプリが初期化されていなければ初期化する
       app = initializeApp(config)
     } else {
-      app = apps[0]  // すでに初期化されているFirebaseアプリのインスタンスを取得
+      app = apps[0] // すでに初期化されているFirebaseアプリのインスタンスを取得
     }
     return app
   }
