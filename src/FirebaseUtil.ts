@@ -96,7 +96,7 @@ class FirebaseUtil {
       const docSnap = await getDoc(docRef) // ドキュメントを読み込む
       if (docSnap.exists()) {
         result.push({
-          id: path,
+          id: docSnap.id,
           data: docSnap.data() // ドキュメントのデータを取得
         })
       } else {
