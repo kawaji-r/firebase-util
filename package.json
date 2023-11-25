@@ -2,10 +2,10 @@
   "name": "firebase-util",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/main.js",
+  "main": "dist/FirebaseUtil.js",
   "scripts": {
     "test": "jest",
-    "main": "ts-node src/main.ts"
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
