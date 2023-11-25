@@ -10,9 +10,9 @@ declare class FirebaseUtil {
     /**
      * FirebaseUtilのコンストラクタ
      * @param {firebaseConfigType} config - Firebaseの設定
-     * Firebaseの設定を元に、FirebaseアプリとFirestoreを初期化します。
+     * Firebaseの設定を元に、FirebaseアプリとFirestoreを初期化します。設定がnullの場合、環境変数から設定を読み込みます。
      */
-    constructor(config: firebaseConfigType);
+    constructor(config?: firebaseConfigType);
     /**
      * Firestoreのフィールドを更新します
      * @param {string} path - ドキュメントへのパス
