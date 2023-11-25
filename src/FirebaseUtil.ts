@@ -1,6 +1,5 @@
 import { FirebaseApp, getApps, initializeApp } from 'firebase/app'
 import {
-  addDoc,
   collection,
   deleteDoc,
   doc,
@@ -15,7 +14,7 @@ import {
   setDoc,
   where
 } from 'firebase/firestore'
-import { firebaseConfigType, FirestoreStructure } from './types'
+import { docReturnType, firebaseConfigType, firestoreField, firestoreWhere } from './types'
 
 /**
  * Firebaseのユーティリティクラス
@@ -37,91 +36,57 @@ class FirebaseUtil {
 
   /**
    * Firestoreのフィールドを更新します
-   * @param {FirestoreStructure} firestoreStructure - Firestoreの構造
+   * @param {string} path - ドキュメントへのパス
+   * @param {firestoreField} field - 更新するフィールド
    * @param {boolean} mergeFlg - マージフラグ
-   * @param {any} ref - Firestoreの参照
+   * @returns {Promise<DocumentReference>} ドキュメントの参照
    * Firestoreのドキュメントのフィールドを更新します。ドキュメントが存在しない場合は新規作成します。
    * マージフラグがtrueの場合、既存のフィールドは保持され、指定したフィールドのみが更新されます。
    * マージフラグがfalseの場合、ドキュメント全体が新たに書き換えられます。
    */
-  public async updateField(
-    firestoreStructure: FirestoreStructure,
-    mergeFlg: boolean = false,
-    ref: any = this.firestore
-  ) {
-    const obj = {
-      col: firestoreStructure.collection, // コレクション名
-      doc: firestoreStructure.document, // ドキュメントID
-      fld: firestoreStructure.field, // 更新するフィールドのデータ
-      nxt: firestoreStructure.next // 次に更新するFirestoreの構造
-    }
-
-    if (!obj.col) throw new Error(`collectionキーは必須です / ${JSON.stringify(obj)}`)
-    if (!obj.fld && !obj.nxt) throw new Error(`fieldキーとnextキーのどちらかは必須です / ${JSON.stringify(obj)}`)
-
-    if (obj.doc && obj.fld && obj.nxt) {
-      ref = doc(ref, obj.col, obj.doc) // ドキュメントの参照を取得
-      await setDoc(ref, obj.fld, { merge: mergeFlg }) // フィールドを更新
-      await this.updateField(obj.nxt, mergeFlg, ref) // 次の更新を実行
-    } else if (obj.doc && obj.fld && !obj.nxt) {
-      ref = doc(ref, obj.col, obj.doc) // ドキュメントの参照を取得
-      await setDoc(ref, obj.fld, { merge: mergeFlg }) // フィールドを更新
-    } else if (obj.doc && !obj.fld && obj.nxt) {
-      ref = doc(ref, obj.col, obj.doc) // ドキュメントの参照を取得
-      await this.updateField(obj.nxt, mergeFlg, ref) // 次の更新を実行
-    } else if (!obj.doc && obj.fld && obj.nxt) {
-      ref = collection(ref, obj.col) // コレクションの参照を取得
-      ref = await addDoc(ref, obj.fld) // 新規ドキュメントを作成
-      await this.updateField(obj.nxt, mergeFlg, ref) // 次の更新を実行
-    } else if (!obj.doc && obj.fld && !obj.nxt) {
-      ref = collection(ref, obj.col) // コレクションの参照を取得
-      await addDoc(ref, obj.fld) // 新規ドキュメントを作成
-    } else if (!obj.doc && !obj.fld && obj.nxt) {
-      ref = collection(ref, obj.col) // コレクションの参照を取得
-      ref = await addDoc(ref, {}) // 空の新規ドキュメントを作成
-      await this.updateField(obj.nxt, mergeFlg, ref) // 次の更新を実行
-    } else {
-      throw new Error(`インプットデータが不正です / ${JSON.stringify(obj)}`)
-    }
+  public async updateField(path: string, field: firestoreField, mergeFlg: boolean = false): Promise<DocumentReference> {
+    if (!path) throw new Error('pathは必須です')
+    if (!field) throw new Error('fieldキーは必須です')
+    const docRef = this.getDocRef(path) // DocumentReference取得
+    await setDoc(docRef, field, { merge: mergeFlg })
+    return docRef
   }
 
   /**
    * Firestoreのドキュメントを読み込みます
-   * @param {FirestoreStructure} firestoreStructure - Firestoreの構造
-   * @param {any} ref - Firestoreの参照
+   * @param {string} path - ドキュメントへのパス
+   * @param {firestoreWhere[]} whereAnd - 検索条件
+   * @param {boolean} onlyOne - 一つだけのドキュメントを返すかどうか
    * @returns {Promise<{id: string, data: unknown}[] | null>} ドキュメントのデータ
    * Firestoreのドキュメントを読み込み、そのデータを返します。
    * ドキュメントが存在しない場合はnullを返します。
    */
   public async readDocument(
-    firestoreStructure: FirestoreStructure,
-    ref: any = this.firestore
-  ): Promise<
-    | {
-        id: string
-        data: unknown
-      }[]
-    | null
-  > {
-    const obj = {
-      col: firestoreStructure.collection, // コレクション名
-      doc: firestoreStructure.document, // ドキュメントID
-      and: firestoreStructure.whereAnd, // 検索条件
-      nxt: firestoreStructure.next // 次に読み込むFirestoreの構造
-    }
+    path: string,
+    whereAnd: firestoreWhere[] = [],
+    onlyOne: boolean = false
+  ): Promise<docReturnType | docReturnType[] | null> {
+    if (!path) throw new Error('pathキーは必須です')
 
-    if (!obj.col) throw new Error(`collectionキーは必須です / ${JSON.stringify(obj)}`)
-    if ((obj.doc && obj.and) || (!obj.doc && !obj.and))
-      throw new Error(`documentキーとwhereAndキーのどちらか一方のみ必須です / ${JSON.stringify(obj)}`)
+    const isDoc = this.isDoc(path) // パスがドキュメントを指しているかどうかを判定
+
+    if (isDoc && whereAnd.length !== 0)
+      throw new Error(
+        `pathがドキュメントの場合はwhereAndキーは禁止です / path: ${JSON.stringify(path)} / whereAnd: ${whereAnd}`
+      )
+    if (!isDoc && whereAnd.length === 0)
+      throw new Error(
+        `pathがコレクションの場合はwhereAndキーが必須です / path: ${JSON.stringify(path)} / whereAnd: ${whereAnd}`
+      )
 
     let result: { id: string; data: unknown }[] | null = []
 
-    if (obj.doc) {
-      ref = doc(ref, obj.col, obj.doc) // ドキュメントの参照を取得
-      const docSnap = await getDoc(ref) // ドキュメントを読み込む
+    if (isDoc) {
+      const docRef = this.getDocRef(path) // DocumentReference取得
+      const docSnap = await getDoc(docRef) // ドキュメントを読み込む
       if (docSnap.exists()) {
         result.push({
-          id: obj.doc,
+          id: path,
           data: docSnap.data() // ドキュメントのデータを取得
         })
       } else {
@@ -129,17 +94,16 @@ class FirebaseUtil {
       }
     }
 
-    if (obj.and) {
-      let q: Query<unknown, DocumentData> = collection(ref, obj.col) // コレクションの参照を取得
+    if (whereAnd.length !== 0) {
+      let q: Query<unknown, DocumentData> = collection(this.firestore, path) // コレクションの参照を取得
       // 複数条件のAND検索を実現できている
-      obj.and.forEach((el: any) => {
+      whereAnd.forEach((el: any) => {
         q = query(q, where(el.key, el.operator, el.value)) // 検索条件を追加
       })
       const querySnapshot = await getDocs(q) // 検索を実行
       querySnapshot.forEach((document) => {
         // (whr && nxt)の場合は、whrの結果のドキュメントIDを使ってnxt処理に使用する。
         // それもあり、whrの結果は1つのみの想定。そうでない場合は任意の一つのドキュメントが採用される。
-        ref = doc(ref, obj.col, document.id) // ドキュメントの参照を取得
         result.push({
           id: document.id,
           data: document.data() // ドキュメントのデータを取得
@@ -147,27 +111,25 @@ class FirebaseUtil {
       })
     }
 
-    // nxt がある場合はrefのみ、ない場合は result のみが使われる
-    if (obj.nxt) return await this.readDocument(obj.nxt, ref) // 次の読み込みを実行
+    if (onlyOne) {
+      if (result.length !== 1) throw new Error('検索結果が1件になりませんでした')
+      return result[0]
+    }
+
     return result
   }
 
   /**
    * Firestoreのドキュメントを削除します
-   * @param {FirestoreStructure} firestoreStructure - Firestoreの構造
-   * @param {any} ref - Firestoreの参照
+   * @param {string} path - ドキュメントへのパス
    * Firestoreのドキュメントを削除します。サブコレクションは削除されません。
    */
-  public async deleteDocument(firestoreStructure: FirestoreStructure, ref: any = this.firestore) {
-    if (!firestoreStructure.collection) throw new Error('collectionキーは必須です')
-    if (!firestoreStructure.document) throw new Error('documentキーは必須です')
-
-    ref = doc(ref, firestoreStructure.collection, firestoreStructure.document) // ドキュメントの参照を取得
-    if (firestoreStructure.next) {
-      // サブコレクションは削除されないので注意
-      await this.deleteDocument(firestoreStructure.next, ref) // 次の削除を実行
-    }
-    await deleteDoc(ref) // ドキュメントを削除
+  public async deleteDocument(path: string) {
+    if (!path) throw new Error('pathキーは必須です')
+    if (!this.isDoc(path)) throw new Error(`pathはドキュメントを指している必要があります / ${path}`)
+    // ドキュメントを削除
+    const docRef = this.getDocRef(path) // DocumentReference取得
+    await deleteDoc(docRef) // サブコレクションは削除されないので注意
   }
 
   /**
@@ -179,6 +141,11 @@ class FirebaseUtil {
     throw new Error('Webクライアントからのコレクションの削除は推奨されていません')
   }
 
+  /**
+   * UUIDを生成します
+   * @returns {string} 生成されたUUID
+   * このメソッドは、cryptoモジュールを使用してUUIDを生成します。
+   */
   public static generateUUID(): string {
     const crypto = require('crypto')
     return crypto.randomUUID()
@@ -188,20 +155,37 @@ class FirebaseUtil {
    * 指定したパスのドキュメントを取得します。
    * @param {string} path - ドキュメントへのパス
    * @returns {DocumentReference} ドキュメントの参照
-   * パスは先頭と末尾のスラッシュを除去します。スラッシュの数が偶数の場合は、UUIDを生成してパスに追加します。
+   * pathがコレクションである場合は、UUIDを生成してパスに追加します。
    * 最終的にFirestoreからドキュメントの参照を取得します。
    */
-  private getDocument(path: string): DocumentReference {
-    // 先頭と末尾のスラッシュを除去
-    path = path.replace(/^\/|\/$/g, '')
-    // スラッシュの数をカウント
-    const slashCount = (path.match(/\//g) || []).length
-    // スラッシュの数が偶数の場合は、UUIDを生成してパスに追加
-    if (slashCount % 2 === 0) {
+  private getDocRef(path: string): DocumentReference {
+    const isDoc = this.isDoc(path)
+    // pathがコレクションである場合は、UUIDを生成してパスに追加
+    if (!isDoc) {
       path += '/' + FirebaseUtil.generateUUID()
     }
     // Firestoreからドキュメントの参照を取得
     return doc(this.firestore, path)
+  }
+
+  /**
+   * パスがドキュメントを指しているかどうかを判断します。
+   * @param {string} path - ドキュメントへのパス
+   * @returns {boolean} パスがドキュメントを指している場合はtrue、そうでない場合はfalse
+   * パスの先頭と末尾のスラッシュを除去した後、スラッシュの数を数えます。スラッシュの数が奇数の場合は、パスはドキュメントを指しています。
+   */
+  private isDoc(path: string): boolean {
+    // 先頭と末尾のスラッシュを除去
+    path = path.replace(/^\/|\/$/g, '')
+    // スラッシュの数をreturn
+    const slashCount = (path.match(/\//g) || []).length
+    if (slashCount % 2 !== 0) {
+      // スラッシュの数が奇数 => document
+      return true
+    } else {
+      // スラッシュの数が偶数 => not document
+      return false
+    }
   }
 
   /**

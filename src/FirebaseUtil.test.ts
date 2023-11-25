@@ -1,8 +1,6 @@
-import { FirebaseApp, getApps, initializeApp } from 'firebase/app'
-import { collection, doc, setDoc, addDoc, getFirestore } from 'firebase/firestore'
 import FirebaseUtil from './FirebaseUtil'
-import { FirestoreStructure } from './types'
 import { config } from 'dotenv'
+import { docReturnType } from './types'
 
 describe('FirebaseUtil', () => {
   let firebaseUtil: FirebaseUtil
@@ -19,60 +17,86 @@ describe('FirebaseUtil', () => {
       appId: process.env.FIREBASE_APP_ID || ''
     }
     firebaseUtil = new FirebaseUtil(app)
+
     // 現在時刻取得
     const date = new Date()
-    nowTime = `${date.getFullYear()}/${
+    nowTime = `${date.getFullYear()}-${
       date.getMonth() + 1
-    }/${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
+    }-${date.getDate()} ${date.getHours()}:${date.getMinutes()}:${date.getSeconds()}`
   })
 
-  test('firebase-test', async () => {
-    const config = {
-      apiKey: process.env.FIREBASE_API_KEY || '',
-      authDomain: process.env.FIREBASE_AUTH_DOMAIN || '',
-      projectId: process.env.FIREBASE_PROJECT_ID || '',
-      storageBucket: process.env.FIREBASE_STORAGE_BUCKET || '',
-      messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '',
-      appId: process.env.FIREBASE_APP_ID || ''
+  it('スラッシュが0個の場合', async () => {
+    // 入力データ
+    const input = {
+      path: 'test',
+      field: { key: `${nowTime}-00001`, comment: 'スラッシュが0個' }
     }
-    let app
-    const apps: FirebaseApp[] = getApps() // すでに初期化されているFirebaseアプリのリストを取得
-    if (!apps.length) {
-      // Firebaseアプリが初期化されていなければ初期化する
-      app = initializeApp(config)
-    } else {
-      app = apps[0] // すでに初期化されているFirebaseアプリのインスタンスを取得
-    }
-    const db = getFirestore(app)
-    let docSnap
 
-    docSnap = await setDoc(doc(db, 'cities', 'NY'), { no: 1 })
-    // Collection: cities, Document: LA, Field: {no: 2} を登録
+    // 処理実施
+    const docRef = await firebaseUtil.updateField(input.path, input.field)
 
-    docSnap = await setDoc(doc(db, 'cities/Hawaii'), { no: 2 })
-    // Collection: cities, Document: LA, Field: {no: 2} を登録
-
-    docSnap = await setDoc(doc(db, 'user', 'MyName', 'cities', 'Miami'), { no: 3 })
-    // docSnap = await setDoc(doc(db, 'cities', 'LA'), { no: 2 })
-    // Collection: cities, Document: LA, Field: {no: 2} を登録
-
-    docSnap = await setDoc(doc(db, 'user/MyName/cities/SanFransisco'), { no: 4 })
-    // Collection: cities, Document: LA, Field: {no: 2} を登録
-
-    docSnap = await setDoc(doc(db, `user/MyName/cities/${FirebaseUtil.generateUUID()}`), { no: 5 })
-    // Collection: cities, Document: LA, Field: {no: 2} を登録
+    // 結果確認
+    const fetch = (await firebaseUtil.readDocument(docRef.path, undefined, true)) as docReturnType
+    expect(fetch.data).toEqual(input.field)
   })
 
-  test('updateField', async () => {
-    const firestoreStructure: FirestoreStructure = {
-      collection: 'test',
-      document: '2023/11/10 1234',
-      field: { n: 1 }
+  it('スラッシュが1個の場合', async () => {
+    // 入力データ
+    const input = {
+      path: `test/${nowTime}`,
+      field: { key: `${nowTime}-00002`, comment: 'スラッシュが1個' }
     }
-    await firebaseUtil.updateField(firestoreStructure, true)
-    expect(1).toEqual(1)
-    // const docRef = doc(firebaseUtil.firestore, firestoreStructure.collection, firestoreStructure.document)
-    // const docSnap = await getDoc(docRef)
-    // expect(docSnap.data()).toEqual({ [firestoreStructure.field]: firestoreStructure.value })
+
+    // 処理実施
+    const docRef = await firebaseUtil.updateField(input.path, input.field)
+
+    // 結果確認
+    const fetch = (await firebaseUtil.readDocument(docRef.path, undefined, true)) as docReturnType
+    expect(fetch.data).toEqual(input.field)
+  })
+
+  it('スラッシュが2個の場合', async () => {
+    // 入力データ
+    const input = {
+      path: `test/${nowTime}/subcollection`,
+      field: { key: `${nowTime}-00003`, comment: 'スラッシュが2個' }
+    }
+
+    // 処理実施
+    const docRef = await firebaseUtil.updateField(input.path, input.field)
+
+    // 結果確認
+    const fetch = (await firebaseUtil.readDocument(docRef.path, undefined, true)) as docReturnType
+    expect(fetch.data).toEqual(input.field)
+  })
+
+  it('スラッシュが3個の場合', async () => {
+    // 入力データ
+    const input = {
+      path: `test/${nowTime}/subcollection/subdocument`,
+      field: { key: `${nowTime}-00004`, comment: 'スラッシュが3個' }
+    }
+
+    // 処理実施
+    const docRef = await firebaseUtil.updateField(input.path, input.field)
+
+    // 結果確認
+    const fetch = (await firebaseUtil.readDocument(docRef.path, undefined, true)) as docReturnType
+    expect(fetch.data).toEqual(input.field)
+  })
+
+  it('ドキュメントを削除', async () => {
+    // 事前準備（データの登録）
+    const docRef = await firebaseUtil.updateField('test/deleteDocument', { comment: '削除されるフィールド' })
+
+    // 入力データ
+    const input = { path: `${docRef.path}` }
+
+    // 処理実施
+    await firebaseUtil.deleteDocument(input.path)
+
+    // 結果確認
+    const fetch = await firebaseUtil.readDocument(docRef.path)
+    expect(fetch).toBeNull()
   })
 })

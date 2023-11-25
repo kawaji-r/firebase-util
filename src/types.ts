@@ -8,11 +8,6 @@ export type firebaseConfigType = {
   messagingSenderId: string
   appId: string
 }
-
-export type FirestoreStructure = {
-  collection: string
-  document?: string
-  whereAnd?: { key: string; operator: WhereFilterOp; value: any }[]
-  field?: { [key: string]: any }
-  next?: FirestoreStructure
-}
+export type firestoreWhere = { key: string; operator: WhereFilterOp; value: any }
+export type firestoreField = { [key: string]: any }
+export type docReturnType = { id: string; data: unknown }
