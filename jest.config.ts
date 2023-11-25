@@ -102,7 +102,7 @@ const config: Config = {
   // notifyMode: "failure-change",
 
   // A preset that is used as a base for Jest's configuration
-  preset: 'ts-jest'
+  preset: 'ts-jest',
 
   // Run tests from one or more projects
   // projects: undefined,
@@ -194,6 +194,8 @@ const config: Config = {
 
   // Whether to use watchman for file crawling
   // watchman: true,
+  // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
+  testPathIgnorePatterns: ['/node_modules/', '/dist/']
 }
 
 export default config
