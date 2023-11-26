@@ -1,11 +1,6 @@
-"use strict";
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const app_1 = require("firebase/app");
-const firestore_1 = require("firebase/firestore");
-const FirestoreUtil_1 = __importDefault(require("./FirestoreUtil"));
+import { getApps, initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import FirestoreUtil from './FirestoreUtil.js';
 /**
  * Firebaseのユーティリティクラス
  * Firebaseの操作を抽象化し、簡単に利用できるようにするためのクラスです。
@@ -28,15 +23,15 @@ class FirebaseUtil {
             };
         }
         let app;
-        const apps = (0, app_1.getApps)(); // すでに初期化されているFirebaseアプリのリストを取得
+        const apps = getApps(); // すでに初期化されているFirebaseアプリのリストを取得
         if (!apps.length) {
             // Firebaseアプリが初期化されていなければ初期化する
-            app = (0, app_1.initializeApp)(config);
+            app = initializeApp(config);
         }
         else {
             app = apps[0]; // すでに初期化されているFirebaseアプリのインスタンスを取得
         }
-        FirebaseUtil.firestore = new FirestoreUtil_1.default((0, firestore_1.getFirestore)(app)); // Firestoreの初期化
+        FirebaseUtil.firestore = new FirestoreUtil(getFirestore(app)); // Firestoreの初期化
     }
     /**
      * UUIDを生成します
@@ -48,4 +43,4 @@ class FirebaseUtil {
         return crypto.randomUUID();
     }
 }
-exports.default = FirebaseUtil;
+export default FirebaseUtil;

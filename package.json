@@ -5,7 +5,8 @@
   "main": "dist/FirebaseUtil.js",
   "scripts": {
     "test": "jest",
-    "build": "tsc"
+    "build": "tsc && sed -i \"/^import .* from '.\\/.*'/s/\\('.*\\)'/\\1.js'/\" dist/*.*"
+
   },
   "keywords": [],
   "author": "",

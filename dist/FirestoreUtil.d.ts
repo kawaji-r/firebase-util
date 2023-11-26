@@ -1,5 +1,5 @@
 import { DocumentReference, Firestore } from 'firebase/firestore';
-import { docReturnType, firestoreField, firestoreWhere } from './types';
+import { docReturnType, firestoreField, firestoreWhere } from './types.js';
 declare class FirestoreUtil {
     private firestore;
     constructor(firestore: Firestore);

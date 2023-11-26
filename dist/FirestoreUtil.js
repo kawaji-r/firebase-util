@@ -1,4 +1,3 @@
-"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -8,12 +7,8 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", { value: true });
-const firestore_1 = require("firebase/firestore");
-const FirebaseUtil_1 = __importDefault(require("./FirebaseUtil"));
+import { collection, deleteDoc, doc, getDoc, getDocs, query, setDoc, where } from 'firebase/firestore';
+import FirebaseUtil from './FirebaseUtil.js';
 class FirestoreUtil {
     constructor(firestore) {
         this.firestore = firestore;
@@ -35,7 +30,7 @@ class FirestoreUtil {
             if (!field)
                 throw new Error('fieldキーは必須です');
             const docRef = this.getDocRef(path); // DocumentReference取得
-            yield (0, firestore_1.setDoc)(docRef, field, { merge: mergeFlg });
+            yield setDoc(docRef, field, { merge: mergeFlg });
             return docRef;
         });
     }
@@ -60,7 +55,7 @@ class FirestoreUtil {
             let result = [];
             if (isDoc) {
                 const docRef = this.getDocRef(path); // DocumentReference取得
-                const docSnap = yield (0, firestore_1.getDoc)(docRef); // ドキュメントを読み込む
+                const docSnap = yield getDoc(docRef); // ドキュメントを読み込む
                 if (docSnap.exists()) {
                     result.push({
                         id: docSnap.id,
@@ -72,12 +67,12 @@ class FirestoreUtil {
                 }
             }
             if (whereAnd.length !== 0) {
-                let q = (0, firestore_1.collection)(this.firestore, path); // コレクションの参照を取得
+                let q = collection(this.firestore, path); // コレクションの参照を取得
                 // 複数条件のAND検索を実現できている
                 whereAnd.forEach((el) => {
-                    q = (0, firestore_1.query)(q, (0, firestore_1.where)(el.key, el.operator, el.value)); // 検索条件を追加
+                    q = query(q, where(el.key, el.operator, el.value)); // 検索条件を追加
                 });
-                const querySnapshot = yield (0, firestore_1.getDocs)(q); // 検索を実行
+                const querySnapshot = yield getDocs(q); // 検索を実行
                 querySnapshot.forEach((doc) => {
                     if (result === null)
                         return;
@@ -101,7 +96,7 @@ class FirestoreUtil {
             const isDoc = this.isDoc(path);
             if (isDoc)
                 throw new Error(`コレクションへのパスを指定する必要があります / ${path}`);
-            const querySnapshot = yield (0, firestore_1.getDocs)((0, firestore_1.collection)(this.firestore, path));
+            const querySnapshot = yield getDocs(collection(this.firestore, path));
             const result = [];
             querySnapshot.forEach((doc) => {
                 result.push({
@@ -125,7 +120,7 @@ class FirestoreUtil {
                 throw new Error(`pathはドキュメントを指している必要があります / ${path}`);
             // ドキュメントを削除
             const docRef = this.getDocRef(path); // DocumentReference取得
-            yield (0, firestore_1.deleteDoc)(docRef); // サブコレクションは削除されないので注意
+            yield deleteDoc(docRef); // サブコレクションは削除されないので注意
         });
     }
     /**
@@ -147,10 +142,10 @@ class FirestoreUtil {
         const isDoc = this.isDoc(path);
         // pathがコレクションである場合は、UUIDを生成してパスに追加
         if (!isDoc) {
-            path += '/' + FirebaseUtil_1.default.generateUUID();
+            path += '/' + FirebaseUtil.generateUUID();
         }
         // Firestoreからドキュメントの参照を取得
-        return (0, firestore_1.doc)(this.firestore, path);
+        return doc(this.firestore, path);
     }
     /**
      * パスがドキュメントを指しているかどうかを判断します。
@@ -173,4 +168,4 @@ class FirestoreUtil {
         }
     }
 }
-exports.default = FirestoreUtil;
+export default FirestoreUtil;

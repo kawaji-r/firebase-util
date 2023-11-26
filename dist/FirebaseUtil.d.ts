@@ -1,5 +1,5 @@
-import { firebaseConfigType } from './types';
-import FirestoreUtil from './FirestoreUtil';
+import { firebaseConfigType } from './types.js';
+import FirestoreUtil from './FirestoreUtil.js';
 /**
  * Firebaseのユーティリティクラス
  * Firebaseの操作を抽象化し、簡単に利用できるようにするためのクラスです。
