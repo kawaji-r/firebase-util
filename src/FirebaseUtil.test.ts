@@ -77,6 +77,37 @@ describe('FirebaseUtil', () => {
     expect(fetch.data).toEqual(input.field)
   })
 
+  it('フィールドをマージする', async () => {
+    // 事前準備（データの登録）
+    await firebaseUtil.updateField('test/mergeField/', { before_comment: 'マージ前' })
+
+    // 処理実施
+    await firebaseUtil.updateField('test/mergeField/', { after_comment: 'マージ後' }, true)
+
+    // 結果確認
+    const fetch = (await firebaseUtil.readDocument('test/mergeField/', undefined, true)) as docReturnType
+    expect(fetch.id).toEqual('mergeField')
+    expect(fetch.data).toEqual({ before_comment: 'マージ前', after_comment: 'マージ後' })
+  })
+
+  it('コレクション内のすべてのドキュメントを取得', async () => {
+    // 事前準備（データの登録）
+    await firebaseUtil.updateField('test/getAllDocument/col/doc1', { comment: '全ドキュメント取得1' })
+    await firebaseUtil.updateField('test/getAllDocument/col/doc2', { comment: '全ドキュメント取得2' })
+    await firebaseUtil.updateField('test/getAllDocument/col/doc3', { comment: '全ドキュメント取得3' })
+
+    // 処理実施
+    const docsRef = await firebaseUtil.readAllDocument('test/getAllDocument/col')
+
+    // 結果確認
+    expect(docsRef[0].id).toEqual('doc1')
+    expect(docsRef[0].data).toEqual({ comment: '全ドキュメント取得1' })
+    expect(docsRef[1].id).toEqual('doc2')
+    expect(docsRef[1].data).toEqual({ comment: '全ドキュメント取得2' })
+    expect(docsRef[2].id).toEqual('doc3')
+    expect(docsRef[2].data).toEqual({ comment: '全ドキュメント取得3' })
+  })
+
   it('ドキュメントを削除', async () => {
     // 事前準備（データの登録）
     const docRef = await firebaseUtil.updateField('test/deleteDocument', { comment: '削除されるフィールド' })

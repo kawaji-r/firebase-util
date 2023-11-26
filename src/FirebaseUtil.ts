@@ -129,6 +129,22 @@ class FirebaseUtil {
     return result
   }
 
+  public async readAllDocument(path: string): Promise<docReturnType[]> {
+    const isDoc = this.isDoc(path)
+    if (isDoc) throw new Error(`コレクションへのパスを指定する必要があります / ${path}`)
+
+    const querySnapshot = await getDocs(collection(this.firestore, path))
+    const result = []
+    querySnapshot.forEach((doc) => {
+      result.push({
+        id: doc.id,
+        data: doc.data() // ドキュメントのデータを取得
+      })
+    })
+
+    return result
+  }
+
   /**
    * Firestoreのドキュメントを削除します
    * @param {string} path - ドキュメントへのパス
