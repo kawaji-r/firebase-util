@@ -5,14 +5,14 @@ FirebaseUtilは、Firebaseの操作を抽象化し、簡単に利用できるよ
 ## install
 ```
 npm install --save git@github.com:kawaji-r/firebase-util.git
-# Firebase SDK install
+# Firebase SDK setup
 npx firebase login
 npx firebase init
 ```
 
 ## First Step
 ```
-import FirebaseUtil from 'firebase-util'
+import fb from 'firebase-util'
 const app = {
   apiKey:              'XXXXX'
   , authDomain:        'XXXXX'
@@ -21,8 +21,8 @@ const app = {
   , messagingSenderId: 'XXXXX'
   , appId:             'XXXXX'
 }
-const firebaseUtil = new FirebaseUtil(app)
-const result = await firebaseUtil.readDocument('collectionId/documentId')
+fb.init(app)
+const result = await fb.firestore.fieldUpdate('collectionId/documentId', {data: 'Hello World!'})
 console.log(`id => ${result[0].id}`)
 console.log(`data => ${result[0].data}`)
 ```

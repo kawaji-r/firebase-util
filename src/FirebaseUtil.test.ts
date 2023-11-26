@@ -1,14 +1,14 @@
-import FirebaseUtil from './FirebaseUtil'
+import fb from './FirebaseUtil'
 import { config } from 'dotenv'
 import { docReturnType } from './types'
 
 describe('FirebaseUtil', () => {
-  let firebaseUtil: FirebaseUtil
+  // let firebaseUtil: FirebaseUtil
   let nowTime: string
 
   beforeAll(() => {
     config()
-    firebaseUtil = new FirebaseUtil()
+    fb.init()
 
     // 現在時刻取得
     const date = new Date()
@@ -25,10 +25,10 @@ describe('FirebaseUtil', () => {
     }
 
     // 処理実施
-    const docRef = await firebaseUtil.updateField(input.path, input.field)
+    const docRef = await fb.firestore.updateField(input.path, input.field)
 
     // 結果確認
-    const fetch = (await firebaseUtil.readDocument(docRef.path, undefined, true)) as docReturnType
+    const fetch = (await fb.firestore.readDocument(docRef.path, undefined, true)) as docReturnType
     expect(fetch.data).toEqual(input.field)
   })
 
@@ -40,10 +40,10 @@ describe('FirebaseUtil', () => {
     }
 
     // 処理実施
-    const docRef = await firebaseUtil.updateField(input.path, input.field)
+    const docRef = await fb.firestore.updateField(input.path, input.field)
 
     // 結果確認
-    const fetch = (await firebaseUtil.readDocument(docRef.path, undefined, true)) as docReturnType
+    const fetch = (await fb.firestore.readDocument(docRef.path, undefined, true)) as docReturnType
     expect(fetch.data).toEqual(input.field)
   })
 
@@ -55,10 +55,10 @@ describe('FirebaseUtil', () => {
     }
 
     // 処理実施
-    const docRef = await firebaseUtil.updateField(input.path, input.field)
+    const docRef = await fb.firestore.updateField(input.path, input.field)
 
     // 結果確認
-    const fetch = (await firebaseUtil.readDocument(docRef.path, undefined, true)) as docReturnType
+    const fetch = (await fb.firestore.readDocument(docRef.path, undefined, true)) as docReturnType
     expect(fetch.data).toEqual(input.field)
   })
 
@@ -70,34 +70,34 @@ describe('FirebaseUtil', () => {
     }
 
     // 処理実施
-    const docRef = await firebaseUtil.updateField(input.path, input.field)
+    const docRef = await fb.firestore.updateField(input.path, input.field)
 
     // 結果確認
-    const fetch = (await firebaseUtil.readDocument(docRef.path, undefined, true)) as docReturnType
+    const fetch = (await fb.firestore.readDocument(docRef.path, undefined, true)) as docReturnType
     expect(fetch.data).toEqual(input.field)
   })
 
   it('フィールドをマージする', async () => {
     // 事前準備（データの登録）
-    await firebaseUtil.updateField('test/mergeField/', { before_comment: 'マージ前' })
+    await fb.firestore.updateField(`test/${nowTime}/mergeField/doc`, { before_comment: 'マージ前' })
 
     // 処理実施
-    await firebaseUtil.updateField('test/mergeField/', { after_comment: 'マージ後' }, true)
+    await fb.firestore.updateField(`test/${nowTime}/mergeField/doc`, { after_comment: 'マージ後' }, true)
 
     // 結果確認
-    const fetch = (await firebaseUtil.readDocument('test/mergeField/', undefined, true)) as docReturnType
-    expect(fetch.id).toEqual('mergeField')
+    const fetch = (await fb.firestore.readDocument(`test/${nowTime}/mergeField/doc`, undefined, true)) as docReturnType
+    expect(fetch.id).toEqual('doc')
     expect(fetch.data).toEqual({ before_comment: 'マージ前', after_comment: 'マージ後' })
   })
 
   it('コレクション内のすべてのドキュメントを取得', async () => {
     // 事前準備（データの登録）
-    await firebaseUtil.updateField('test/getAllDocument/col/doc1', { comment: '全ドキュメント取得1' })
-    await firebaseUtil.updateField('test/getAllDocument/col/doc2', { comment: '全ドキュメント取得2' })
-    await firebaseUtil.updateField('test/getAllDocument/col/doc3', { comment: '全ドキュメント取得3' })
+    await fb.firestore.updateField(`test/${nowTime}/getAllDocument/doc1`, { comment: '全ドキュメント取得1' })
+    await fb.firestore.updateField(`test/${nowTime}/getAllDocument/doc2`, { comment: '全ドキュメント取得2' })
+    await fb.firestore.updateField(`test/${nowTime}/getAllDocument/doc3`, { comment: '全ドキュメント取得3' })
 
     // 処理実施
-    const docsRef = await firebaseUtil.readAllDocument('test/getAllDocument/col')
+    const docsRef = await fb.firestore.readAllDocument(`test/${nowTime}/getAllDocument/`)
 
     // 結果確認
     expect(docsRef[0].id).toEqual('doc1')
@@ -110,16 +110,18 @@ describe('FirebaseUtil', () => {
 
   it('ドキュメントを削除', async () => {
     // 事前準備（データの登録）
-    const docRef = await firebaseUtil.updateField('test/deleteDocument', { comment: '削除されるフィールド' })
+    const docRef = await fb.firestore.updateField(`test/${nowTime}/deleteDocument/doc`, {
+      comment: '削除されるフィールド'
+    })
 
     // 入力データ
     const input = { path: `${docRef.path}` }
 
     // 処理実施
-    await firebaseUtil.deleteDocument(input.path)
+    await fb.firestore.deleteDocument(input.path)
 
     // 結果確認
-    const fetch = await firebaseUtil.readDocument(docRef.path)
+    const fetch = await fb.firestore.readDocument(docRef.path)
     expect(fetch).toBeNull()
   })
 })
