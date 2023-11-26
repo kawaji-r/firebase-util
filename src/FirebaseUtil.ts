@@ -15,7 +15,7 @@ class FirebaseUtil {
    * @param {firebaseConfigType} config - Firebaseの設定
    * Firebaseの設定を元に、FirebaseアプリとFirestoreを初期化します。設定がnullの場合、環境変数から設定を読み込みます。
    */
-  public static init(config: firebaseConfigType = null) {
+  public static init(config: firebaseConfigType | null = null) {
     if (config === null) {
       config = {
         apiKey: process.env.FIREBASE_API_KEY || '',

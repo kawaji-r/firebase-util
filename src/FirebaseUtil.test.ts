@@ -2,7 +2,7 @@ import fb from './FirebaseUtil'
 import { config } from 'dotenv'
 import { docReturnType } from './types'
 
-describe('FirebaseUtil', () => {
+describe('Firestoreテスト', () => {
   // let firebaseUtil: FirebaseUtil
   let nowTime: string
 

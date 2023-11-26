@@ -11,7 +11,7 @@ declare class FirebaseUtil {
      * @param {firebaseConfigType} config - Firebaseの設定
      * Firebaseの設定を元に、FirebaseアプリとFirestoreを初期化します。設定がnullの場合、環境変数から設定を読み込みます。
      */
-    static init(config?: firebaseConfigType): void;
+    static init(config?: firebaseConfigType | null): void;
     /**
      * UUIDを生成します
      * @returns {string} 生成されたUUID

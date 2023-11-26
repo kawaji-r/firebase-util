@@ -89,18 +89,19 @@ class FirestoreUtil {
         q = query(q, where(el.key, el.operator, el.value)) // 検索条件を追加
       })
       const querySnapshot = await getDocs(q) // 検索を実行
-      querySnapshot.forEach((document) => {
-        // (whr && nxt)の場合は、whrの結果のドキュメントIDを使ってnxt処理に使用する。
-        // それもあり、whrの結果は1つのみの想定。そうでない場合は任意の一つのドキュメントが採用される。
+      querySnapshot.forEach((doc) => {
+        if (result === null) return
+
+        // 結果の配列に追加
         result.push({
-          id: document.id,
-          data: document.data() // ドキュメントのデータを取得
+          id: doc.id,
+          data: doc.data() // ドキュメントのデータを取得
         })
       })
     }
 
     if (onlyOne) {
-      if (result.length !== 1) throw new Error('検索結果が1件になりませんでした')
+      if (result?.length !== 1) throw new Error('検索結果が1件になりませんでした')
       return result[0]
     }
 
@@ -112,7 +113,7 @@ class FirestoreUtil {
     if (isDoc) throw new Error(`コレクションへのパスを指定する必要があります / ${path}`)
 
     const querySnapshot = await getDocs(collection(this.firestore, path))
-    const result = []
+    const result: docReturnType[] = []
     querySnapshot.forEach((doc) => {
       result.push({
         id: doc.id,
