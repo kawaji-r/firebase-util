@@ -22,9 +22,7 @@ const app = {
   , appId:             'XXXXX'
 }
 fb.init(app)
-const result = await fb.firestore.fieldUpdate('collectionId/documentId', {data: 'Hello World!'})
-console.log(`id => ${result[0].id}`)
-console.log(`data => ${result[0].data}`)
+const result = await fb.firestore.updateField('collectionId/documentId', {data: 'Hello World!'})
 ```
 
 ## publicメソッド

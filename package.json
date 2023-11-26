@@ -2,7 +2,7 @@
   "name": "firebase-util",
   "version": "1.0.0",
   "description": "",
-  "main": "dist/src/FirebaseUtil.js",
+  "main": "dist/FirebaseUtil.js",
   "scripts": {
     "test": "jest",
     "build": "tsc"
