@@ -6,6 +6,7 @@ FirebaseUtilは、Firebaseの操作を抽象化し、簡単に利用できるよ
 ```
 npm install --save git@github.com:kawaji-r/firebase-util.git
 # Firebase SDK setup
+npm install -g firebase-tools
 npx firebase login
 npx firebase init
 ```
@@ -22,7 +23,7 @@ const app = {
   , appId:             'XXXXX'
 }
 fb.init(app)
-const result = await fb.firestore.updateField('collectionId/documentId', {data: 'Hello World!'})
+fb.firestore.updateField('collectionId/documentId', {data: 'Hello World!'})
 ```
 
 ## publicメソッド
