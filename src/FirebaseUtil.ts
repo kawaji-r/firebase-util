@@ -1,4 +1,4 @@
-import { FirebaseApp, getApps, initializeApp } from 'firebase/app'
+import { FirebaseApp, getApps, initializeApp, deleteApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 import { firebaseConfigType } from './types'
 import FirestoreUtil from './FirestoreUtil'
@@ -15,7 +15,7 @@ class FirebaseUtil {
    * @param {firebaseConfigType} config - Firebaseの設定
    * Firebaseの設定を元に、FirebaseアプリとFirestoreを初期化します。設定がnullの場合、環境変数から設定を読み込みます。
    */
-  public static init(config: firebaseConfigType | null = null) {
+  public static async init(config: firebaseConfigType | null = null) {
     if (config === null) {
       config = {
         apiKey: process.env.FIREBASE_API_KEY || '',
