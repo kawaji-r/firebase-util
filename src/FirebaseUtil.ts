@@ -26,15 +26,18 @@ class FirebaseUtil {
         appId: process.env.FIREBASE_APP_ID || ''
       }
     }
-    let app: FirebaseApp
+
     const apps: FirebaseApp[] = getApps() // すでに初期化されているFirebaseアプリのリストを取得
-    if (!apps.length) {
-      // Firebaseアプリが初期化されていなければ初期化する
-      app = initializeApp(config)
-    } else {
-      app = apps[0] // すでに初期化されているFirebaseアプリのインスタンスを取得
+    if (apps.length) {
+      // Firebaseアプリがある場合は削除する
+      for (const app of apps) {
+        await deleteApp(app)
+      }
     }
-    FirebaseUtil.firestore = new FirestoreUtil(getFirestore(app)) // Firestoreの初期化
+    // Firebaseアプリを初期化する
+    const app = initializeApp(config)
+    // Firestoreアプリを初期化する
+    FirebaseUtil.firestore = new FirestoreUtil(getFirestore(app))
   }
 
   /**
