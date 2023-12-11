@@ -29,13 +29,18 @@ class FirebaseUtil {
 
     const apps: FirebaseApp[] = getApps() // すでに初期化されているFirebaseアプリのリストを取得
     if (apps.length) {
+      console.debug(`apps count: ${apps.length}`)
       // Firebaseアプリがある場合は削除する
       for (const app of apps) {
+        console.debug('deleting app:')
+        console.debug(app)
         await deleteApp(app)
       }
     }
     // Firebaseアプリを初期化する
     const app = initializeApp(config)
+    console.debug('init app:')
+    console.debug(app)
     // Firestoreアプリを初期化する
     FirebaseUtil.firestore = new FirestoreUtil(getFirestore(app))
   }
