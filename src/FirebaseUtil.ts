@@ -28,6 +28,8 @@ class FirebaseUtil {
     }
 
     const apps: FirebaseApp[] = getApps() // すでに初期化されているFirebaseアプリのリストを取得
+    console.debug(`apps:`)
+    console.debug(JSON.stringify(apps))
     if (apps.length) {
       console.debug(`apps count: ${apps.length}`)
       // Firebaseアプリがある場合は削除する
