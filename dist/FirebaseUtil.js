@@ -21,35 +21,35 @@ class FirebaseUtil {
      * Firebaseの設定を元に、FirebaseアプリとFirestoreを初期化します。設定がnullの場合、環境変数から設定を読み込みます。
      */
     static init(config = null) {
+        if (config === null) {
+            config = {
+                apiKey: process.env.FIREBASE_API_KEY || '',
+                authDomain: process.env.FIREBASE_AUTH_DOMAIN || '',
+                projectId: process.env.FIREBASE_PROJECT_ID || '',
+                storageBucket: process.env.FIREBASE_STORAGE_BUCKET || '',
+                messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '',
+                appId: process.env.FIREBASE_APP_ID || ''
+            };
+        }
+        const apps = getApps(); // すでに初期化されているFirebaseアプリのリストを取得
+        const app = apps.length
+            ? apps[0] // すでに初期化されているFirebaseアプリのインスタンスを取得
+            : initializeApp(config); // Firebaseアプリが初期化されていなければ初期化する
+        FirebaseUtil.firestore = new FirestoreUtil(getFirestore(app)); // Firestoreの初期化
+    }
+    /**
+     * すでに初期化されているFirebaseアプリをすべて削除します。
+     * Firebaseアプリが存在しない場合、何も行いません。
+     */
+    static deleteApps() {
         return __awaiter(this, void 0, void 0, function* () {
-            if (config === null) {
-                config = {
-                    apiKey: process.env.FIREBASE_API_KEY || '',
-                    authDomain: process.env.FIREBASE_AUTH_DOMAIN || '',
-                    projectId: process.env.FIREBASE_PROJECT_ID || '',
-                    storageBucket: process.env.FIREBASE_STORAGE_BUCKET || '',
-                    messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID || '',
-                    appId: process.env.FIREBASE_APP_ID || ''
-                };
-            }
             const apps = getApps(); // すでに初期化されているFirebaseアプリのリストを取得
-            console.debug(`apps:`);
-            console.debug(JSON.stringify(apps));
             if (apps.length) {
-                console.debug(`apps count: ${apps.length}`);
                 // Firebaseアプリがある場合は削除する
-                for (const app of apps) {
-                    console.debug('deleting app:');
-                    console.debug(app);
+                for (let app of apps) {
                     yield deleteApp(app);
                 }
             }
-            // Firebaseアプリを初期化する
-            const app = initializeApp(config);
-            console.debug('init app:');
-            console.debug(app);
-            // Firestoreアプリを初期化する
-            FirebaseUtil.firestore = new FirestoreUtil(getFirestore(app));
         });
     }
     /**
