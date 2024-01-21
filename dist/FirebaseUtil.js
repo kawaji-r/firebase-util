@@ -38,7 +38,7 @@ class FirebaseUtil {
             ? apps[0] // すでに初期化されているFirebaseアプリのインスタンスを取得
             : initializeApp(config); // Firebaseアプリが初期化されていなければ初期化する
         FirebaseUtil.firestore = new FirestoreUtil(getFirestore(app)); // Firestoreの初期化
-        FirebaseUtil.auth = new AuthUtil(getAuth()); // Firestoreの初期化
+        FirebaseUtil.auth = new AuthUtil(getAuth(app)); // Firestoreの初期化
     }
     /**
      * すでに初期化されているFirebaseアプリをすべて削除します。
