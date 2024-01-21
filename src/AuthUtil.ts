@@ -5,23 +5,30 @@ import {
   GoogleAuthProvider,
   setPersistence,
   browserSessionPersistence,
-  signInWithRedirect
+  signInWithRedirect,
+  getAuth
 } from 'firebase/auth'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { signInProvider, signInSession } from './types'
+import { getApp } from 'firebase/app'
 
-class AuthUtil {
-  private auth: Auth
+/**
+ * Firebaseの認証ユーティリティを提供します。
+ *
+ * このユーティリティは、Firebaseの認証機能を簡単に使用できるようにするためのものです。
+ * これには、ログイン状態の監視、ログイン・ログアウトの処理などが含まれます。
+ *
+ * @module AuthUtil
+ */
+export const useLogin = (): { loginStatus: boolean; loginLoading: boolean; loginUser: User | null } => {
+  const app = getApp() // すでに初期化されているFirebaseアプリのリストを取得
+  const auth = getAuth(app)
+  const [authUser, setAuthUser] = useState<User | null>(null)
+  const [loading, setLoading] = useState<boolean>(true)
+  const [status, setStatus] = useState<boolean>(false)
 
-  constructor(auth: Auth) {
-    this.auth = auth
-  }
-
-  public useLogin() {
-    const [authUser, setAuthUser] = useState<User | null>(null)
-    const [loading, setLoading] = useState<boolean>(true)
-    const [status, setStatus] = useState<boolean>(false)
-    onAuthStateChanged(this.auth, (user) => {
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
       setAuthUser(user)
       if (user) {
         console.debug('Logged in')
@@ -34,14 +41,26 @@ class AuthUtil {
         setLoading(false)
       }
     })
-    return {
-      loginStatus: status,
-      loginLoading: loading,
-      loginUser: authUser
-    }
+
+    // Cleanup function
+    return () => unsubscribe()
+  })
+
+  return {
+    loginStatus: status,
+    loginLoading: loading,
+    loginUser: authUser
+  }
+}
+
+class AuthUtil {
+  private auth: Auth
+
+  constructor(auth: Auth) {
+    this.auth = auth
   }
 
-  public async signIn(providerName: signInProvider, session: signInSession = 'persistance') {
+  public async signIn(providerName: signInProvider, session: signInSession = 'persistance'): Promise<void> {
     // プロバイダ取得
     let provider: any
     switch (providerName.toLowerCase()) {

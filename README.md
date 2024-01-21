@@ -22,7 +22,7 @@ await fb.init(app)
 fb.firestore.updateField('collectionId/documentId', {data: 'Hello World!'})
 ```
 
-## publicメソッド
+## Firestore
 
 - `updateField(path: string, field: firestoreField, mergeFlg: boolean = false): Promise<DocumentReference>`  
   Firestoreのドキュメントのフィールドを更新します。ドキュメントが存在しない場合は新規作成します。
@@ -35,3 +35,13 @@ fb.firestore.updateField('collectionId/documentId', {data: 'Hello World!'})
 
 - `generateUUID(): string`  
   UUIDを生成します。
+
+## Authentcation
+
+- `useLogin(): { loginStatus: boolean; loginLoading: boolean; loginUser: User | null }`  
+  Firebase Authenticationへのログイン状況を取得するカスタムフック  
+  `import {useLogin} from 'firebase-util'` でインポート
+
+- `signIn(providerName: signInProvider, session: signInSession = 'persistance'): Promise<void>`  
+  リダイレクトを使ってFirebase Authenticationへログインする  
+  `fb.auth.signIn(...)` で使用する

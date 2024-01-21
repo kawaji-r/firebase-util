@@ -7,17 +7,25 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-import { onAuthStateChanged, GoogleAuthProvider, setPersistence, browserSessionPersistence, signInWithRedirect } from 'firebase/auth';
-import { useState } from 'react';
-class AuthUtil {
-    constructor(auth) {
-        this.auth = auth;
-    }
-    useLogin() {
-        const [authUser, setAuthUser] = useState(null);
-        const [loading, setLoading] = useState(true);
-        const [status, setStatus] = useState(false);
-        onAuthStateChanged(this.auth, (user) => {
+import { onAuthStateChanged, GoogleAuthProvider, setPersistence, browserSessionPersistence, signInWithRedirect, getAuth } from 'firebase/auth';
+import { useEffect, useState } from 'react';
+import { getApp } from 'firebase/app';
+/**
+ * Firebaseの認証ユーティリティを提供します。
+ *
+ * このユーティリティは、Firebaseの認証機能を簡単に使用できるようにするためのものです。
+ * これには、ログイン状態の監視、ログイン・ログアウトの処理などが含まれます。
+ *
+ * @module AuthUtil
+ */
+export const useLogin = () => {
+    const app = getApp(); // すでに初期化されているFirebaseアプリのリストを取得
+    const auth = getAuth(app);
+    const [authUser, setAuthUser] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [status, setStatus] = useState(false);
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, (user) => {
             setAuthUser(user);
             if (user) {
                 console.debug('Logged in');
@@ -31,11 +39,18 @@ class AuthUtil {
                 setLoading(false);
             }
         });
-        return {
-            loginStatus: status,
-            loginLoading: loading,
-            loginUser: authUser
-        };
+        // Cleanup function
+        return () => unsubscribe();
+    });
+    return {
+        loginStatus: status,
+        loginLoading: loading,
+        loginUser: authUser
+    };
+};
+class AuthUtil {
+    constructor(auth) {
+        this.auth = auth;
     }
     signIn(providerName, session = 'persistance') {
         return __awaiter(this, void 0, void 0, function* () {

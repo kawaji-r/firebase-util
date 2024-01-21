@@ -1,6 +1,7 @@
 import { firebaseConfigType } from './types.js';
 import FirestoreUtil from './FirestoreUtil.js';
 import AuthUtil from './AuthUtil.js';
+export { useLogin } from './AuthUtil';
 /**
  * Firebaseのユーティリティクラス
  * Firebaseの操作を抽象化し、簡単に利用できるようにするためのクラスです。
