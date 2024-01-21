@@ -6,7 +6,6 @@
   "scripts": {
     "test": "jest",
     "build": "tsc && sed -i \"/^import .* from '.\\/.*'/s/\\('.*\\)'/\\1.js'/\" dist/*.*"
-
   },
   "keywords": [],
   "author": "",
@@ -14,6 +13,7 @@
   "devDependencies": {
     "@types/jest": "^29.5.10",
     "@types/node": "^20.8.4",
+    "@types/react": "^18.2.48",
     "dotenv": "^16.3.1",
     "jest": "^29.7.0",
     "prettier": "^3.1.0",
@@ -24,6 +24,7 @@
   },
   "type": "module",
   "dependencies": {
-    "firebase": "^10.6.0"
+    "firebase": "^10.6.0",
+    "react": "^18.2.0"
   }
 }

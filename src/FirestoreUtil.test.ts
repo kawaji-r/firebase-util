@@ -6,9 +6,9 @@ describe('Firestoreテスト', () => {
   // let firebaseUtil: FirebaseUtil
   let nowTime: string
 
-  beforeAll(() => {
+  beforeAll(async () => {
     config()
-    fb.init()
+    await fb.init()
 
     // 現在時刻取得
     const date = new Date()
@@ -123,5 +123,10 @@ describe('Firestoreテスト', () => {
     // 結果確認
     const fetch = await fb.firestore.readDocument(docRef.path)
     expect(fetch).toBeNull()
+  })
+
+  it('init two times', async () => {
+    // 事前準備（データの登録）
+    await fb.init()
   })
 })

@@ -11,3 +11,6 @@ export type firebaseConfigType = {
 export type firestoreWhere = { key: string; operator: WhereFilterOp; value: any }
 export type firestoreField = { [key: string]: any }
 export type docReturnType = { id: string; data: unknown }
+
+export type signInProvider = 'google'
+export type signInSession = 'persistance'
