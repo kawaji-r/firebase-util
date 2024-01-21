@@ -1,11 +1,13 @@
 import { firebaseConfigType } from './types.js';
 import FirestoreUtil from './FirestoreUtil.js';
+import AuthUtil from './AuthUtil.js';
 /**
  * Firebaseのユーティリティクラス
  * Firebaseの操作を抽象化し、簡単に利用できるようにするためのクラスです。
  */
 declare class FirebaseUtil {
     static firestore: FirestoreUtil;
+    static auth: AuthUtil;
     /**
      * FirebaseUtilのコンストラクタ
      * @param {firebaseConfigType} config - Firebaseの設定

@@ -19,3 +19,5 @@ export type docReturnType = {
     id: string;
     data: unknown;
 };
+export type signInProvider = 'google';
+export type signInSession = 'persistance';
